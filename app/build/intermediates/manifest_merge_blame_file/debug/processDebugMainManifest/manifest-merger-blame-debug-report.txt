@@ -1,0 +1,83 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.example.lscontrol"
+4    android:versionCode="5"
+5    android:versionName="3.1" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="26"
+9        android:targetSdkVersion="34" />
+10
+11    <!-- Android 11以下 -->
+12    <uses-permission
+12-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:6:5-95
+13        android:name="android.permission.BLUETOOTH"
+13-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:6:22-65
+14        android:maxSdkVersion="30" />
+14-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:6:66-92
+15    <uses-permission
+15-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:7:5-101
+16        android:name="android.permission.BLUETOOTH_ADMIN"
+16-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:7:22-71
+17        android:maxSdkVersion="30" />
+17-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:7:72-98
+18    <uses-permission
+18-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:8:5-106
+19        android:name="android.permission.ACCESS_FINE_LOCATION"
+19-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:8:22-76
+20        android:maxSdkVersion="30" />
+20-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:8:77-103
+21    <!-- Android 12以上 -->
+22    <uses-permission
+22-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:10:5-11:78
+23        android:name="android.permission.BLUETOOTH_SCAN"
+23-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:10:22-70
+24        android:usesPermissionFlags="neverForLocation" />
+24-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:11:9-55
+25    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+25-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:12:5-76
+25-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:12:22-73
+26    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+26-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:13:5-78
+26-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:13:22-75
+27    <!-- INTERNET権限は宣言していない = 通信はBLEのみ（完全オフライン） -->
+28
+29    <uses-feature
+29-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:16:5-90
+30        android:name="android.hardware.bluetooth_le"
+30-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:16:19-63
+31        android:required="true" />
+31-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:16:64-87
+32
+33    <application
+33-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:18:5-31:19
+34        android:allowBackup="false"
+34-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:20:9-36
+35        android:debuggable="true"
+36        android:extractNativeLibs="false"
+37        android:label="MControl"
+37-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:19:9-33
+38        android:theme="@android:style/Theme.Material.Light.NoActionBar" >
+38-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:21:9-72
+39        <activity
+39-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:22:9-30:20
+40            android:name="com.example.lscontrol.MainActivity"
+40-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:23:13-41
+41            android:exported="true"
+41-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:24:13-36
+42            android:screenOrientation="portrait" >
+42-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:25:13-49
+43            <intent-filter>
+43-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:26:13-29:29
+44                <action android:name="android.intent.action.MAIN" />
+44-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:27:17-69
+44-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:27:25-66
+45
+46                <category android:name="android.intent.category.LAUNCHER" />
+46-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:28:17-77
+46-->C:\Users\User\Downloads\LSControl\LSControl\app\src\main\AndroidManifest.xml:28:27-74
+47            </intent-filter>
+48        </activity>
+49    </application>
+50
+51</manifest>
