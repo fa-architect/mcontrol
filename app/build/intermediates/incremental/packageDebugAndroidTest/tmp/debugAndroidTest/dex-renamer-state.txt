@@ -1,0 +1,4 @@
+#Thu Sep 24 14:24:58 JST 2026
+base.0=C\:\\Users\\User\\Downloads\\LSControl\\LSControl\\app\\build\\intermediates\\dex\\debugAndroidTest\\mergeProjectDexDebugAndroidTest\\0\\classes.dex
+path.0=0/classes.dex
+renamed.0=classes.dex

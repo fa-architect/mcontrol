@@ -1,0 +1,4 @@
+com.example.lscontrol.test.app-androidTest-0 C:\Users\User\Downloads\LSControl\LSControl\app\build\generated\res\resValues\androidTest\debug
+com.example.lscontrol.test.app-mergeDebugAndroidTestResources-1 C:\Users\User\Downloads\LSControl\LSControl\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
+com.example.lscontrol.test.app-mergeDebugAndroidTestResources-2 C:\Users\User\Downloads\LSControl\LSControl\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
+com.example.lscontrol.test.app-debugAndroidTest-3 C:\Users\User\Downloads\LSControl\LSControl\app\build\intermediates\merged_res\debugAndroidTest\mergeDebugAndroidTestResources
