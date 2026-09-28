@@ -23,7 +23,10 @@ iPhoneのアプリは、BLEの広播でManufacturer Data（製造者データ）
 | 4 | B86A | 0B7B |
 | 5 | 316B | 0B6A |
 | 6 | AA68 | 0B58 |
-| 7・停止 | 9C6E | 0B3D |
+| 7 | 2369 | 0B49 |
+| 8 | D466 | 0BB1 |
+| 9 | 5D67 | 0BA0 |
+| 停止 | 9C6E | 0B3D |
 
 ## ビルド時の設定
 
@@ -31,17 +34,18 @@ iPhoneのアプリは、BLEの広播でManufacturer Data（製造者データ）
 
 - Minimum Deployments：iOS 17.0
 - Build Settings：`INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription`（Debug・Release両方に説明文を入れる）
-- Signing & Capabilities：Background Modes → Acts as a Bluetooth LE accessory
 - Build Settings（User-Defined）：`ASSETCATALOG_COMPILER_APPICON_NAME` = `AppIcon`
   （これがないとアイコンがアプリに入らず、仮のアイコンが表示されます）
+- Signing & Capabilities：Background Modes → Acts as a Bluetooth LE accessory
+  （追加しましたが、アプリを開いたままで動いたため、必要かは未確認です）
 
 ## 動作確認環境
 
 - Xcode 27
 - iPhone 13 mini（iOS 26.6.2）
-- アプリが前面にある状態で動作を確認
+- アプリが前面にある状態で、パターン1〜9と停止の動作を確認
 
 ## 注意
 
-- パターンは1〜7まで（公式アプリの観測で、8・9・停止は7と同じ値でした）
 - 伸縮・振動の2チャンネル独立制御は未対応です
+- 無料のApple IDで入れた場合、7日ごとにXcodeから入れ直す必要があります
