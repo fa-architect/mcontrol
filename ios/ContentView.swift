@@ -15,16 +15,18 @@ final class BroadcastController: NSObject, ObservableObject, CBPeripheralManager
     // 固定UUID後半（D1C1以降）
     private let tail: [String] = ["0D0C", "0F0E", "1110", "1312", "1514", "1716", "1918"]
 
-    // index 0 = 停止, 1〜7 = パターン1〜7
+    // index 0 = 停止, 1〜9 = パターン1〜9
     private let variable: [[String]] = [
-        ["9C6E", "0B3D"],
-        ["156F", "0B2C"],
-        ["8E6C", "0B1E"],
-        ["076D", "0B0F"],
-        ["B86A", "0B7B"],
-        ["316B", "0B6A"],
-        ["AA68", "0B58"],
-        ["9C6E", "0B3D"]
+        ["9C6E", "0B3D"],  // 停止
+        ["156F", "0B2C"],  // 1
+        ["8E6C", "0B1E"],  // 2
+        ["076D", "0B0F"],  // 3
+        ["B86A", "0B7B"],  // 4
+        ["316B", "0B6A"],  // 5
+        ["AA68", "0B58"],  // 6
+        ["2369", "0B49"],  // 7
+        ["D466", "0BB1"],  // 8
+        ["5D67", "0BA0"]   // 9
     ]
 
     override init() {
@@ -102,7 +104,7 @@ struct ContentView: View {
                 .foregroundColor(.gray)
 
             LazyVGrid(columns: columns, spacing: 12) {
-                ForEach(1...7, id: \.self) { n in
+                ForEach(1...9, id: \.self) { n in
                     PatternButton(number: n, isSelected: selected == n) {
                         tap(n)
                     }
