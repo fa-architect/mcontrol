@@ -15,18 +15,27 @@ final class BroadcastController: NSObject, ObservableObject, CBPeripheralManager
     // 固定UUID後半（D1C1以降）
     private let tail: [String] = ["0D0C", "0F0E", "1110", "1312", "1514", "1716", "1918"]
 
-    // index 0 = 停止, 1〜9 = パターン1〜9
-    private let variable: [[String]] = [
-        ["9C6E", "0B3D"],  // 停止
-        ["156F", "0B2C"],  // 1
-        ["8E6C", "0B1E"],  // 2
-        ["076D", "0B0F"],  // 3
-        ["B86A", "0B7B"],  // 4
-        ["316B", "0B6A"],  // 5
-        ["AA68", "0B58"],  // 6
-        ["2369", "0B49"],  // 7
-        ["D466", "0BB1"],  // 8
-        ["5D67", "0BA0"]   // 9
+    // グループ 0=全体, 1=伸縮, 2=振動
+    // 各グループ index 0 = 停止, 1〜9 = パターン1〜9
+    private let table: [[[String]]] = [
+        // 全体（実機で確認済み）
+        [
+            ["9C6E", "0B3D"], ["156F", "0B2C"], ["8E6C", "0B1E"], ["076D", "0B0F"],
+            ["B86A", "0B7B"], ["316B", "0B6A"], ["AA68", "0B58"], ["2369", "0B49"],
+            ["D466", "0BB1"], ["5D67", "0BA0"]
+        ],
+        // 伸縮 CH1（Android版の命令から計算・未確認）
+        [
+            ["1F5E", "0B0C"], ["965F", "0B1D"], ["0D5C", "0B2F"], ["845D", "0B3E"],
+            ["3B5A", "0B4A"], ["B25B", "0B5B"], ["2958", "0B69"], ["A059", "0B78"],
+            ["5756", "0B80"], ["DE57", "0B91"]
+        ],
+        // 振動 CH2（Android版の命令から計算・未確認）
+        [
+            ["982E", "0B7F"], ["112F", "0B6E"], ["8A2C", "0B5C"], ["032D", "0B4D"],
+            ["BC2A", "0B39"], ["352B", "0B28"], ["AE28", "0B1A"], ["2729", "0B0B"],
+            ["D026", "0BF3"], ["5927", "0BE2"]
+        ]
     ]
 
     override init() {
@@ -42,11 +51,11 @@ final class BroadcastController: NSObject, ObservableObject, CBPeripheralManager
         isReady = (peripheral.state == .poweredOn)
     }
 
-    func send(_ index: Int) {
+    func send(group: Int, index: Int) {
         guard isReady, let mgr = manager else { return }
         mgr.stopAdvertising()
         // 順番：head + 可変UUID + tail
-        let list: [String] = head + variable[index] + tail
+        let list: [String] = head + table[group][index] + tail
         let uuids: [CBUUID] = list.map { CBUUID(string: $0) }
         mgr.startAdvertising([CBAdvertisementDataServiceUUIDsKey: uuids])
     }
@@ -84,7 +93,10 @@ struct PatternButton: View {
 
 struct ContentView: View {
     @StateObject private var ble = BroadcastController()
+    @State private var group: Int = 0
     @State private var selected: Int = 0
+
+    private let groupNames: [String] = ["全体", "伸縮", "振動"]
 
     private let columns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
@@ -98,6 +110,17 @@ struct ContentView: View {
                 .font(.title)
                 .bold()
                 .padding(.top, 40)
+
+            Picker("グループ", selection: $group) {
+                Text("全体").tag(0)
+                Text("伸縮").tag(1)
+                Text("振動").tag(2)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .onChange(of: group) {
+                selected = 0
+            }
 
             Text(statusText)
                 .font(.subheadline)
@@ -113,7 +136,7 @@ struct ContentView: View {
             .padding(.horizontal)
 
             Button(action: stop) {
-                Text("■ 停止")
+                Text("■ \(groupNames[group])を停止")
                     .font(.title3)
                     .bold()
                     .frame(maxWidth: .infinity)
@@ -130,15 +153,21 @@ struct ContentView: View {
 
     private var statusText: String {
         if !ble.isReady { return "Bluetooth準備中…" }
-        return selected == 0 ? "停止中" : "パターン \(selected) 送信中"
+        let name = groupNames[group]
+        return selected == 0 ? "\(name)：停止中" : "\(name)：パターン \(selected) 送信中"
     }
 
     private func tap(_ n: Int) {
-        if selected == n { stop() } else { selected = n; ble.send(n) }
+        if selected == n {
+            stop()
+        } else {
+            selected = n
+            ble.send(group: group, index: n)
+        }
     }
 
     private func stop() {
         selected = 0
-        ble.send(0)
+        ble.send(group: group, index: 0)
     }
 }
