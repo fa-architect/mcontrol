@@ -1,0 +1,69 @@
+From 26d9b9f473059421db64c8cb0342bb506158e87a Mon Sep 17 00:00:00 2001
+From: fa-architect <field.architect.jp@gmail.com>
+Date: Wed, 30 Sep 2026 23:00:11 +0900
+Subject: [PATCH 2/2] =?UTF-8?q?NDK=2030=20/=20CMake=204.1.2=20/=20Java=202?=
+ =?UTF-8?q?1=20=E3=81=AB=E5=90=88=E3=82=8F=E3=81=9B=E3=82=8B?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ examples/llama.android/app/build.gradle.kts |  4 ++--
+ examples/llama.android/lib/build.gradle.kts | 12 ++++++------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/examples/llama.android/app/build.gradle.kts b/examples/llama.android/app/build.gradle.kts
+index 2edfe98..96c93c8 100644
+--- a/examples/llama.android/app/build.gradle.kts
++++ b/examples/llama.android/app/build.gradle.kts
+@@ -41,8 +41,8 @@ android {
+         }
+     }
+     compileOptions {
+-        sourceCompatibility = JavaVersion.VERSION_17
+-        targetCompatibility = JavaVersion.VERSION_17
++        sourceCompatibility = JavaVersion.VERSION_21
++        targetCompatibility = JavaVersion.VERSION_21
+     }
+ }
+ 
+diff --git a/examples/llama.android/lib/build.gradle.kts b/examples/llama.android/lib/build.gradle.kts
+index ae95f41..9d50ace 100644
+--- a/examples/llama.android/lib/build.gradle.kts
++++ b/examples/llama.android/lib/build.gradle.kts
+@@ -7,7 +7,7 @@ android {
+     namespace = "com.arm.aichat"
+     compileSdk = 36
+ 
+-    ndkVersion = "29.0.13113456"
++    ndkVersion = "30.0.16248370"
+ 
+     defaultConfig {
+         minSdk = 33
+@@ -42,18 +42,18 @@ android {
+     externalNativeBuild {
+         cmake {
+             path("src/main/cpp/CMakeLists.txt")
+-            version = "3.31.6"
++            version = "4.1.2"
+         }
+     }
+     compileOptions {
+-        sourceCompatibility = JavaVersion.VERSION_17
+-        targetCompatibility = JavaVersion.VERSION_17
++        sourceCompatibility = JavaVersion.VERSION_21
++        targetCompatibility = JavaVersion.VERSION_21
+     }
+     kotlin {
+-        jvmToolchain(17)
++        jvmToolchain(21)
+ 
+         compileOptions {
+-            targetCompatibility = JavaVersion.VERSION_17
++            targetCompatibility = JavaVersion.VERSION_21
+         }
+     }
+ 
+-- 
+2.54.0.windows.1
+

@@ -1,0 +1,93 @@
+From b782cacf4fa42e84a43cd89b8cbfddd6eb92902b Mon Sep 17 00:00:00 2001
+From: fa-architect <field.architect.jp@gmail.com>
+Date: Wed, 30 Sep 2026 23:00:11 +0900
+Subject: [PATCH 1/2] add resetConversation + empty think block for Qwen
+
+---
+ examples/llama.android/lib/src/main/cpp/ai_chat.cpp | 13 +++++++++++++
+ .../src/main/java/com/arm/aichat/InferenceEngine.kt |  6 ++++++
+ .../com/arm/aichat/internal/InferenceEngineImpl.kt  | 13 +++++++++++++
+ 3 files changed, 32 insertions(+)
+
+diff --git a/examples/llama.android/lib/src/main/cpp/ai_chat.cpp b/examples/llama.android/lib/src/main/cpp/ai_chat.cpp
+index 03ab96c..d1d079b 100644
+--- a/examples/llama.android/lib/src/main/cpp/ai_chat.cpp
++++ b/examples/llama.android/lib/src/main/cpp/ai_chat.cpp
+@@ -399,6 +399,17 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_processSystemPrompt(
+     return 0;
+ }
+ 
++extern "C"
++JNIEXPORT jint JNICALL
++Java_com_arm_aichat_internal_InferenceEngineImpl_nativeResetConversation(
++        JNIEnv * /*unused*/,
++        jobject /*unused*/
++) {
++    // Reset conversation history and KV cache without unloading the model
++    reset_long_term_states();
++    LOGi("nativeResetConversation", "Conversation history reset!");
++    return 0;
++}
+ extern "C"
+ JNIEXPORT jint JNICALL
+ Java_com_arm_aichat_internal_InferenceEngineImpl_processUserPrompt(
+@@ -419,6 +430,8 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_processUserPrompt(
+     const bool has_chat_template = common_chat_templates_was_explicit(g_chat_templates.get());
+     if (has_chat_template) {
+         formatted_user_prompt = chat_add_and_format(ROLE_USER, user_prompt);
++        // Prefill an empty think block to skip the thinking phase (Qwen-style)
++        formatted_user_prompt += "<think>\n\n</think>\n\n";
+     }
+     env->ReleaseStringUTFChars(juser_prompt, user_prompt);
+ 
+diff --git a/examples/llama.android/lib/src/main/java/com/arm/aichat/InferenceEngine.kt b/examples/llama.android/lib/src/main/java/com/arm/aichat/InferenceEngine.kt
+index 26c1668..b9dcf39 100644
+--- a/examples/llama.android/lib/src/main/java/com/arm/aichat/InferenceEngine.kt
++++ b/examples/llama.android/lib/src/main/java/com/arm/aichat/InferenceEngine.kt
+@@ -40,6 +40,12 @@ interface InferenceEngine {
+      */
+     fun cleanUp()
+ 
++    /**
++     * Resets conversation history and KV cache without unloading the model.
++     * Faster than cleanUp() + loadModel() when only clearing chat history.
++     */
++    suspend fun resetConversation()
++
+     /**
+      * Cleans up resources when the engine is no longer needed.
+      */
+diff --git a/examples/llama.android/lib/src/main/java/com/arm/aichat/internal/InferenceEngineImpl.kt b/examples/llama.android/lib/src/main/java/com/arm/aichat/internal/InferenceEngineImpl.kt
+index a293796..eeb17fd 100644
+--- a/examples/llama.android/lib/src/main/java/com/arm/aichat/internal/InferenceEngineImpl.kt
++++ b/examples/llama.android/lib/src/main/java/com/arm/aichat/internal/InferenceEngineImpl.kt
+@@ -109,6 +109,9 @@ internal class InferenceEngineImpl private constructor(
+     @FastNative
+     private external fun shutdown()
+ 
++    @FastNative
++    private external fun nativeResetConversation(): Int
++
+     private val _state =
+         MutableStateFlow<InferenceEngine.State>(InferenceEngine.State.Uninitialized)
+     override val state: StateFlow<InferenceEngine.State> = _state.asStateFlow()
+@@ -309,6 +312,16 @@ internal class InferenceEngineImpl private constructor(
+     /**
+      * Cancel all ongoing coroutines and free GGML backends
+      */
++
++    override suspend fun resetConversation() = withContext(llamaDispatcher) {
++        check(_state.value is InferenceEngine.State.ModelReady) {
++            "Cannot reset conversation in ${_state.value.javaClass.simpleName}!"
++        }
++        _readyForSystemPrompt = true
++        nativeResetConversation()
++        _state.value = InferenceEngine.State.ModelReady
++    }
++
+     override fun destroy() {
+         _cancelGeneration = true
+         runBlocking(llamaDispatcher) {
+-- 
+2.54.0.windows.1
+
