@@ -7,3 +7,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "LSControl"
 include(":app")
+include(":llama")
+project(":llama").projectDir = file("C:/dev/llama.cpp/examples/llama.android/lib")

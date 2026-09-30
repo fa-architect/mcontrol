@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.lscontrol"
-        minSdk = 26
+        minSdk = 33
         targetSdk = 34
         versionCode = 5
         versionName = "3.1"
@@ -26,4 +26,8 @@ android {
 
 kotlin {
     jvmToolchain(21)
+}
+
+dependencies {
+    implementation(project(":llama"))
 }
