@@ -1,4 +1,5 @@
 [versions]
+kotlinx-coroutines = "1.10.2"
 
 # Plugins
 agp = "8.13.2"
@@ -27,6 +28,7 @@ jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = 
 
 
 [libraries]
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 
 # AndroidX
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
