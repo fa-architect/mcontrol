@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.example.lscontrol"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.lscontrol"
@@ -18,9 +18,12 @@ android {
         release { isMinifyEnabled = false }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions { jvmTarget = "17" }
 }
 // 外部ライブラリ依存なし（Android標準APIのみ）
+
+kotlin {
+    jvmToolchain(21)
+}
