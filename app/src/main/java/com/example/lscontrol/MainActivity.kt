@@ -3,6 +3,7 @@ package com.example.lscontrol
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
@@ -16,6 +17,13 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @SuppressLint("MissingPermission")
 class MainActivity : Activity() {
@@ -30,6 +38,9 @@ class MainActivity : Activity() {
     private var selCh2 = 0
 
     private var pending: (() -> Unit)? = null
+    private lateinit var ai: AiPanel
+    private val seqScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var seqJob: Job? = null
 
     // 青（伸縮）
     private val BL_TEXT   = Color.rgb(0x0C, 0x44, 0x7C)
@@ -49,11 +60,14 @@ class MainActivity : Activity() {
     override fun onCreate(s: Bundle?) {
         super.onCreate(s)
         tx = BroadcastController(this) { }
+        ai = AiPanel(this, { dp(it) }) { cmds -> runSequence(cmds) }
         setContentView(buildUi())
     }
 
     override fun onStop() {
         super.onStop()
+        seqJob?.cancel()
+        ai.cancel()
         tx.stopAll()
         clearSel1(); clearSel2()
     }
@@ -67,6 +81,9 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(14), dp(20), dp(14), dp(28))
         }
+
+        root.addView(ai.build())
+        root.addView(gap(dp(10)))
 
         // 伸縮カード（青）
         badge1 = TextView(this)
@@ -106,7 +123,8 @@ class MainActivity : Activity() {
                 Color.rgb(0xF0, 0x95, 0x95), dp(1))
             minHeight = dp(64)
             setOnClickListener { withPermission {
-                clearSel1(); clearSel2(); tx.stopAll()
+                seqJob?.cancel(); seqJob = null
+                ai.cancel(); clearSel1(); clearSel2(); tx.stopAll()
             }}
         }, lp(MATCH_PARENT, WRAP_CONTENT))
 
@@ -191,6 +209,7 @@ class MainActivity : Activity() {
     // ── 操作 ──────────────────────────────────────────────────
 
     private fun onPat1(n: Int, b: Button) {
+        seqJob?.cancel(); seqJob = null
         if (selCh1 == n) { onStop1(); return }
         ch1Btns.forEach { resetBtn(it, N_BG, N_TEXT) }
         selCh1 = n; selBtn(b, BL_SEL_BG, BL_TEXT, BL_BORDER)
@@ -199,6 +218,7 @@ class MainActivity : Activity() {
     }
 
     private fun onPat2(n: Int, b: Button) {
+        seqJob?.cancel(); seqJob = null
         if (selCh2 == n) { onStop2(); return }
         ch2Btns.forEach { resetBtn(it, N_BG, N_TEXT) }
         selCh2 = n; selBtn(b, PK_SEL_BG, PK_TEXT, PK_BORDER)
@@ -207,10 +227,12 @@ class MainActivity : Activity() {
     }
 
     private fun onStop1() {
+        seqJob?.cancel(); seqJob = null
         clearSel1(); tx.stopCh1()
     }
 
     private fun onStop2() {
+        seqJob?.cancel(); seqJob = null
         clearSel2(); tx.stopCh2()
     }
 
@@ -222,6 +244,41 @@ class MainActivity : Activity() {
     private fun clearSel2() {
         ch2Btns.forEach { resetBtn(it, N_BG, N_TEXT) }
         selCh2 = 0; badge2.text = "停止中"
+    }
+
+    // ── AIシーケンス ──────────────────────────────────────────
+
+    private fun runSequence(cmds: List<AiCommand>) {
+        seqJob?.cancel()
+        seqJob = seqScope.launch {
+            clearSel1(); clearSel2()
+            for (cmd in cmds) {
+                applyCommand(cmd.channel, cmd.pattern)
+                delay(cmd.seconds * 1000L)
+            }
+            tx.stopAll()
+            clearSel1(); clearSel2()
+            seqJob = null
+        }
+    }
+
+    private fun applyCommand(channel: String, pattern: Int) {
+        when (channel) {
+            "all" -> if (pattern == 0) {
+                tx.stopCh1(); tx.stopCh2()
+            } else {
+                tx.sendCh1(BroadcastController.CH1[pattern])
+                tx.sendCh2(BroadcastController.CH2[pattern])
+            }
+            "stroke" -> {
+                if (pattern > 0) tx.sendCh1(BroadcastController.CH1[pattern]) else tx.stopCh1()
+                tx.stopCh2()
+            }
+            "vibe" -> {
+                tx.stopCh1()
+                if (pattern > 0) tx.sendCh2(BroadcastController.CH2[pattern]) else tx.stopCh2()
+            }
+        }
     }
 
     // ── 描画ヘルパー ──────────────────────────────────────────
@@ -275,5 +332,17 @@ class MainActivity : Activity() {
         super.onRequestPermissionsResult(req, perms, res)
         if (res.isNotEmpty() && res.all { it == PackageManager.PERMISSION_GRANTED }) pending?.invoke()
         pending = null
+    }
+
+    override fun onActivityResult(req: Int, res: Int, data: Intent?) {
+        super.onActivityResult(req, res, data)
+        ai.onActivityResult(req, res, data)
+    }
+
+    override fun onDestroy() {
+        seqJob?.cancel()
+        seqScope.cancel()
+        ai.destroy()
+        super.onDestroy()
     }
 }

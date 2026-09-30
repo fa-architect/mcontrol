@@ -17,6 +17,9 @@ android {
     buildTypes {
         release { isMinifyEnabled = false }
     }
+    packaging {
+        jniLibs { useLegacyPackaging = true }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
@@ -30,4 +33,5 @@ kotlin {
 
 dependencies {
     implementation(project(":llama"))
+    implementation(libs.kotlinx.coroutines.android)
 }
