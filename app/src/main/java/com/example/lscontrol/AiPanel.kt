@@ -36,7 +36,8 @@ import java.io.File
 class AiPanel(
     private val act: Activity,
     private val dp: (Int) -> Int,
-    private val onCommands: (List<AiCommand>) -> Unit = {}
+    private val onCommands: (List<AiCommand>) -> Unit = {},
+    private val onStopAll: () -> Unit = {}
 ) {
 
     companion object {
@@ -100,26 +101,59 @@ class AiPanel(
             orientation = LinearLayout.VERTICAL
             setPadding(dp(14), dp(14), dp(14), dp(14))
             background = GradientDrawable().apply {
-                setColor(Color.WHITE)
+                setColor(Color.parseColor("#1C1C1E"))
                 cornerRadius = dp(12).toFloat()
-                setStroke(dp(1), Color.parseColor("#D3D1C7"))
+                setStroke(dp(1), Color.parseColor("#3A3A3E"))
             }
         }
 
-        card.addView(TextView(act).apply {
+        val header = android.widget.LinearLayout(act).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
+        header.addView(TextView(act).apply {
             text = "AI（端末内）"; textSize = 15f
+            setTextColor(Color.WHITE)
             setTypeface(typeface, Typeface.BOLD)
-        })
+        }, android.widget.LinearLayout.LayoutParams(0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        header.addView(android.widget.Button(act).apply {
+            text = "■ 全停止"; textSize = 12f; isAllCaps = false
+            setTextColor(Color.rgb(0xF0, 0x95, 0x95))
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                setColor(Color.rgb(0x3A, 0x1A, 0x1A))
+                cornerRadius = dp(8).toFloat()
+                setStroke(dp(1), Color.rgb(0xF0, 0x95, 0x95))
+            }
+            setPadding(dp(12), dp(4), dp(12), dp(4))
+            setOnClickListener { onStopAll() }
+        }, android.widget.LinearLayout.LayoutParams(
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        ))
+        card.addView(header)
 
-        status = TextView(act).apply { text = "モデル未選択"; textSize = 12f }
+        status = TextView(act).apply { text = "モデル未選択"; textSize = 12f; setTextColor(Color.rgb(0x8E, 0x8E, 0x93)) }
         card.addView(status)
 
-        card.addView(Button(act).apply {
+        card.addView(android.widget.Button(act).apply {
             text = "モデル選択"; isAllCaps = false
-            setOnClickListener { pickModel() }
+            setTextColor(Color.WHITE)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                setColor(Color.parseColor("#2C2C2E"))
+                cornerRadius = dp(8).toFloat()
+                setStroke(dp(1), Color.parseColor("#3A3A3E"))
+            }
+            setOnClickListener { this@AiPanel.pickModel() }
         }, lp().also { it.topMargin = dp(6) })
 
-        input = EditText(act).apply { hint = "言葉を入力"; isSingleLine = false }
+        input = EditText(act).apply {
+            hint = "例：振動だけ強く / 伸縮だけゆっくり / だんだん強くして\nそのあと振動だけ弱く / 両方止めて"
+            isSingleLine = false
+            setTextColor(Color.WHITE)
+            setHintTextColor(Color.rgb(0x63, 0x63, 0x6F))
+        }
         card.addView(input, lp())
 
         val row = LinearLayout(act).apply { orientation = LinearLayout.HORIZONTAL }
@@ -130,13 +164,14 @@ class AiPanel(
         row.addView(sendBtn, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f).also { it.marginEnd = dp(6) })
         row.addView(Button(act).apply {
             text = "AI中断"; isAllCaps = false
-            setOnClickListener { cancel() }
+            setOnClickListener { this@AiPanel.cancel() }
         }, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
         card.addView(row, lp())
 
         output = TextView(act).apply {
             textSize = 14f
             typeface = Typeface.MONOSPACE
+            setTextColor(Color.WHITE)
             setTextIsSelectable(true)
         }
         card.addView(output, lp().also { it.topMargin = dp(6) })
@@ -161,7 +196,7 @@ class AiPanel(
     // ── モデル選択 ──────────────────────────────────────────────
 
     private fun pickModel() {
-        cancel()
+        this@AiPanel.cancel()
         val i = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "*/*"
@@ -317,7 +352,7 @@ class AiPanel(
 
     /** MainActivity の onDestroy から呼ぶ */
     fun destroy() {
-        cancel()
+        this@AiPanel.cancel()
         scope.cancel()
         if (act.isFinishing) engine?.destroy()
     }

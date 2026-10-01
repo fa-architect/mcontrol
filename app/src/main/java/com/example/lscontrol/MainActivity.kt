@@ -29,12 +29,12 @@ import kotlinx.coroutines.launch
 class MainActivity : Activity() {
 
     private lateinit var tx: BroadcastController
-    private lateinit var badge1: TextView   // 伸縮カード内のバッジ
-    private lateinit var badge2: TextView   // 振動カード内のバッジ
+    private lateinit var badge1: TextView
+    private lateinit var badge2: TextView
 
     private val ch1Btns = mutableListOf<Button>()
     private val ch2Btns = mutableListOf<Button>()
-    private var selCh1 = 0   // 0 = 未選択
+    private var selCh1 = 0
     private var selCh2 = 0
 
     private var pending: (() -> Unit)? = null
@@ -43,24 +43,31 @@ class MainActivity : Activity() {
     private var seqJob: Job? = null
 
     // 青（伸縮）
-    private val BL_TEXT   = Color.rgb(0x0C, 0x44, 0x7C)
-    private val BL_SEL_BG = Color.rgb(0xE6, 0xF1, 0xFB)
+    private val BL_TEXT   = Color.rgb(0x37, 0x8A, 0xDD)
+    private val BL_SEL_BG = Color.rgb(0x1A, 0x2A, 0x3A)
     private val BL_BORDER  = Color.rgb(0x37, 0x8A, 0xDD)
 
     // ピンク（振動）
-    private val PK_TEXT   = Color.rgb(0x72, 0x24, 0x3E)
-    private val PK_SEL_BG = Color.rgb(0xFB, 0xEA, 0xF0)
+    private val PK_TEXT   = Color.rgb(0xD4, 0x53, 0x7E)
+    private val PK_SEL_BG = Color.rgb(0x2A, 0x14, 0x20)
     private val PK_BORDER  = Color.rgb(0xD4, 0x53, 0x7E)
 
-    // ニュートラル
-    private val N_BG   = Color.parseColor("#F1EFE8")
-    private val N_BTN  = Color.parseColor("#D3D1C7")
-    private val N_TEXT = Color.parseColor("#2C2C2A")
+    // ニュートラル（黒系）
+    private val BG_PAGE  = Color.parseColor("#000000")
+    private val BG_CARD  = Color.parseColor("#1C1C1E")
+    private val N_BTN    = Color.parseColor("#2C2C2E")
+    private val N_BORDER = Color.parseColor("#3A3A3E")
+    private val N_TEXT   = Color.parseColor("#FFFFFF")
 
     override fun onCreate(s: Bundle?) {
         super.onCreate(s)
         tx = BroadcastController(this) { }
-        ai = AiPanel(this, { dp(it) }) { cmds -> runSequence(cmds) }
+        ai = AiPanel(this, { dp(it) }, onCommands = { cmds -> runSequence(cmds) }) {
+            withPermission {
+                seqJob?.cancel(); seqJob = null
+                ai.cancel(); clearSel1(); clearSel2(); tx.stopAll()
+            }
+        }
         setContentView(buildUi())
     }
 
@@ -79,6 +86,7 @@ class MainActivity : Activity() {
     private fun buildUi(): View {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
+            setBackgroundColor(BG_PAGE)
             setPadding(dp(14), dp(20), dp(14), dp(28))
         }
 
@@ -88,14 +96,14 @@ class MainActivity : Activity() {
         // 伸縮カード（青）
         badge1 = TextView(this)
         root.addView(channelCard(
-            label      = "伸縮",
-            accentText = BL_TEXT,
-            accentBg   = BL_SEL_BG,
+            label        = "伸縮",
+            accentText   = BL_TEXT,
+            accentBg     = BL_SEL_BG,
             accentBorder = BL_BORDER,
-            badge      = badge1,
-            btns       = ch1Btns,
-            onPat      = { n, b -> withPermission { onPat1(n, b) } },
-            onStop     = { withPermission { onStop1() } }
+            badge        = badge1,
+            btns         = ch1Btns,
+            onPat        = { n, b -> withPermission { onPat1(n, b) } },
+            onStop       = { withPermission { onStop1() } }
         ))
 
         root.addView(gap(dp(10)))
@@ -113,22 +121,10 @@ class MainActivity : Activity() {
             onStop       = { withPermission { onStop2() } }
         ))
 
-        root.addView(gap(dp(18)))
-
-        // 全停止
-        root.addView(Button(this).apply {
-            text = "■ 全停止"; textSize = 17f; isAllCaps = false
-            setTextColor(Color.rgb(0x79, 0x1F, 0x1F))
-            background = rr(Color.rgb(0xFC, 0xEB, 0xEB), dp(10),
-                Color.rgb(0xF0, 0x95, 0x95), dp(1))
-            minHeight = dp(64)
-            setOnClickListener { withPermission {
-                seqJob?.cancel(); seqJob = null
-                ai.cancel(); clearSel1(); clearSel2(); tx.stopAll()
-            }}
-        }, lp(MATCH_PARENT, WRAP_CONTENT))
-
-        return ScrollView(this).apply { addView(root) }
+        return ScrollView(this).apply {
+            setBackgroundColor(BG_PAGE)
+            addView(root)
+        }
     }
 
     private fun channelCard(
@@ -142,7 +138,7 @@ class MainActivity : Activity() {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(14), dp(14), dp(14), dp(14))
-            background = rr(Color.WHITE, dp(12), N_BTN, dp(1))
+            background = rr(BG_CARD, dp(12), N_BORDER, dp(1))
         }
 
         // ヘッダー
@@ -180,7 +176,7 @@ class MainActivity : Activity() {
                 val b = Button(this).apply {
                     text = n.toString(); textSize = 20f; isAllCaps = false
                     setTextColor(N_TEXT)
-                    background = rr(N_BG, dp(8), N_BTN, dp(1))
+                    background = rr(N_BTN, dp(8), N_BORDER, dp(1))
                     minHeight = dp(60); minWidth = 0
                     setOnClickListener { onPat(n, this) }
                 }
@@ -211,7 +207,7 @@ class MainActivity : Activity() {
     private fun onPat1(n: Int, b: Button) {
         seqJob?.cancel(); seqJob = null
         if (selCh1 == n) { onStop1(); return }
-        ch1Btns.forEach { resetBtn(it, N_BG, N_TEXT) }
+        ch1Btns.forEach { resetBtn(it) }
         selCh1 = n; selBtn(b, BL_SEL_BG, BL_TEXT, BL_BORDER)
         badge1.text = "パターン $n"
         tx.sendCh1(BroadcastController.CH1[n])
@@ -220,7 +216,7 @@ class MainActivity : Activity() {
     private fun onPat2(n: Int, b: Button) {
         seqJob?.cancel(); seqJob = null
         if (selCh2 == n) { onStop2(); return }
-        ch2Btns.forEach { resetBtn(it, N_BG, N_TEXT) }
+        ch2Btns.forEach { resetBtn(it) }
         selCh2 = n; selBtn(b, PK_SEL_BG, PK_TEXT, PK_BORDER)
         badge2.text = "パターン $n"
         tx.sendCh2(BroadcastController.CH2[n])
@@ -237,12 +233,12 @@ class MainActivity : Activity() {
     }
 
     private fun clearSel1() {
-        ch1Btns.forEach { resetBtn(it, N_BG, N_TEXT) }
+        ch1Btns.forEach { resetBtn(it) }
         selCh1 = 0; badge1.text = "停止中"
     }
 
     private fun clearSel2() {
-        ch2Btns.forEach { resetBtn(it, N_BG, N_TEXT) }
+        ch2Btns.forEach { resetBtn(it) }
         selCh2 = 0; badge2.text = "停止中"
     }
 
@@ -288,9 +284,9 @@ class MainActivity : Activity() {
         b.setTextColor(text); b.setTypeface(b.typeface, Typeface.BOLD)
     }
 
-    private fun resetBtn(b: Button, bg: Int, text: Int) {
-        b.background = rr(bg, dp(8), N_BTN, dp(1))
-        b.setTextColor(text); b.setTypeface(b.typeface, Typeface.NORMAL)
+    private fun resetBtn(b: Button) {
+        b.background = rr(N_BTN, dp(8), N_BORDER, dp(1))
+        b.setTextColor(N_TEXT); b.setTypeface(b.typeface, Typeface.NORMAL)
     }
 
     private fun rr(fill: Int, r: Int, stroke: Int, sw: Int) =
@@ -305,6 +301,7 @@ class MainActivity : Activity() {
 
     private fun gap(h: Int) = View(this).apply {
         layoutParams = lp(MATCH_PARENT, h)
+        setBackgroundColor(BG_PAGE)
     }
 
     // ── 権限 ──────────────────────────────────────────────────
